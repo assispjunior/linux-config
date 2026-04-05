@@ -195,6 +195,43 @@ COLOR_DIM     = "#888888"
 COLOR_BLUE    = "#4da6ff"
 COLOR_ORANGE  = "#ff8c00"
 
+# ── Black Mode ───────────────────────────────────────────────────────────────
+_black_mode_on  = False
+_brightness_bak = 100  # guarda o brilho original
+
+def black_mode_toggle():
+    global _black_mode_on, _brightness_bak
+    if not _black_mode_on:
+        # Ler brilho atual antes de apagar
+        try:
+            out = subprocess.check_output(
+                ["ddcutil", "--display", "1", "getvcp", "10"],
+                stderr=subprocess.DEVNULL
+            ).decode()
+            import re as _re
+            m = _re.search(r"current value\s*=\s*(\d+)", out)
+            if m:
+                _brightness_bak = int(m.group(1))
+        except Exception:
+            _brightness_bak = 100
+
+        # Minimizar todas as janelas (show desktop KDE)
+        subprocess.Popen(["qdbus", "org.kde.KWin", "/KWin", "showDesktop", "1"],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # Brilho 10%
+        subprocess.Popen(["ddcutil", "--display", "1", "setvcp", "10", "10"],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        _black_mode_on = True
+    else:
+        # Restaurar brilho
+        subprocess.Popen(["ddcutil", "--display", "1", "setvcp", "10", str(_brightness_bak)],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # Desfazer show desktop
+        subprocess.Popen(["qdbus", "org.kde.KWin", "/KWin", "showDesktop", "0"],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        _black_mode_on = False
+    return _black_mode_on
+
 # Thresholds por componente: (limite_medio, limite_alto)
 TEMP_THRESHOLDS = {
     "cpu":   (60, 80),
@@ -346,6 +383,14 @@ class OverlayWindow(Gtk.ApplicationWindow):
         self._update_mango_label(False)
         main_box.append(self.lbl_mango)
 
+        main_box.append(Gtk.Separator())
+
+        # Black Mode
+        self.black_btn = Gtk.Button(label="☾  BLACK MODE")
+        self.black_btn.add_css_class("fps-button")
+        self.black_btn.connect("clicked", self._on_black_clicked)
+        main_box.append(self.black_btn)
+
         self.set_child(main_box)
 
         # SIGUSR1 = toggle visibilidade (enviado pelo tray)
@@ -441,6 +486,10 @@ class OverlayWindow(Gtk.ApplicationWindow):
             with open("/tmp/overlay_toggle.log", "a") as f:
                 f.write(f"toggle error: {e}\n")
         return GLib.SOURCE_CONTINUE
+
+    def _on_black_clicked(self, btn):
+        on = black_mode_toggle()
+        btn.set_label("☀  RESTAURAR" if on else "☾  BLACK MODE")
 
     def _on_fps_clicked(self, btn):
         global fps_limit_index
