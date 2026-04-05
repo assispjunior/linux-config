@@ -199,36 +199,35 @@ COLOR_ORANGE  = "#ff8c00"
 _black_mode_on  = False
 _brightness_bak = 100  # guarda o brilho original
 
+def _ddcutil_set(value):
+    """Chama ddcutil em thread separada para não travar a UI."""
+    import threading
+    def _set():
+        subprocess.run(["ddcutil", "--display", "1", "--sleep-multiplier", "0.5",
+                        "setvcp", "10", str(value)],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    threading.Thread(target=_set, daemon=True).start()
+
 def black_mode_toggle():
     global _black_mode_on, _brightness_bak
     if not _black_mode_on:
-        # Ler brilho atual antes de apagar
+        # Ler brilho atual
         try:
             out = subprocess.check_output(
-                ["ddcutil", "--display", "1", "getvcp", "10"],
-                stderr=subprocess.DEVNULL
+                ["ddcutil", "--display", "1", "--sleep-multiplier", "0.5", "getvcp", "10"],
+                stderr=subprocess.DEVNULL, timeout=5
             ).decode()
-            import re as _re
-            m = _re.search(r"current value\s*=\s*(\d+)", out)
-            if m:
-                _brightness_bak = int(m.group(1))
+            m = re.search(r"current value\s*=\s*(\d+)", out)
+            _brightness_bak = int(m.group(1)) if m else 100
         except Exception:
             _brightness_bak = 100
 
-        # Minimizar todas as janelas (show desktop KDE)
-        subprocess.Popen(["qdbus", "org.kde.KWin", "/KWin", "showDesktop", "1"],
-                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        # Brilho 10%
-        subprocess.Popen(["ddcutil", "--display", "1", "setvcp", "10", "10"],
-                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # Brilho 1%
+        _ddcutil_set(1)
         _black_mode_on = True
     else:
-        # Restaurar brilho
-        subprocess.Popen(["ddcutil", "--display", "1", "setvcp", "10", str(_brightness_bak)],
-                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        # Desfazer show desktop
-        subprocess.Popen(["qdbus", "org.kde.KWin", "/KWin", "showDesktop", "0"],
-                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # Restaurar brilho original
+        _ddcutil_set(_brightness_bak)
         _black_mode_on = False
     return _black_mode_on
 
