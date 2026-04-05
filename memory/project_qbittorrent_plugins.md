@@ -1,20 +1,36 @@
 ---
-name: qBittorrent plugins
-description: Instalação em massa de 53 plugins de busca no qBittorrent via script
+name: Reinstall Qbit
+description: Restaurar os 52 plugins de busca do qBittorrent Flatpak após reinstalação
 type: project
 ---
 
-53 plugins públicos e não-pornográficos instalados no qBittorrent Flatpak.
+qBittorrent Flatpak `org.qbittorrent.qBittorrent` v5.1.4 com 52 plugins instalados.
 
-**Why:** Usuário não conseguia instalar plugins .py pois o browser salvava como .txt.
+## Pasta dos plugins
+```
+~/.var/app/org.qbittorrent.qBittorrent/data/qBittorrent/nova3/engines/
+```
 
-**How to apply:** Quando usuário mencionar qBittorrent plugins, busca, engines.
+## Como reinstalar
+```bash
+cd ~/.var/app/org.qbittorrent.qBittorrent/data/qBittorrent/nova3/engines/
+BASE="https://raw.githubusercontent.com/qbittorrent/search-plugins/master/nova3/engines"
+for plugin in academictorrents acgrip ali213 anidex animetosho audiobookbay bitsearch bt4gprx btdig calidadtorrent cloudtorrents cpasbien darklibria divxtotal dmhy dodi_repacks dontorrent elitetorrent esmeraldatorrent fitgirl_repacks glotorrents kickasstorrents linuxtracker magnetdl maxitorrent mejortorrent mikan naranjatorrent nyaa nyaasi onlinefix pediatorrent pirateiro rockbox rutor sktorrent smallgames snowfl solidtorrents subsplease thepiratebay therarbg tomadivx torrent9 torrentdownload torrentdownloads torrentgalaxy uniondht yggtracker yourbittorrent yts zooqle; do
+  curl -sL "$BASE/$plugin.py" -o "$plugin.py" 2>/dev/null || \
+  curl -sL "https://raw.githubusercontent.com/v1k45/qbittorrent-plugins/master/$plugin.py" -o "$plugin.py" 2>/dev/null
+done
+```
 
-## Detalhes
-- qBittorrent: Flatpak `org.qbittorrent.qBittorrent` v5.1.4
-- Pasta dos plugins: `~/.var/app/org.qbittorrent.qBittorrent/data/qBittorrent/nova3/engines/`
-- Plugins instalados: 53 (públicos, sem conteúdo exclusivamente pornográfico)
-- Excluídos: mypornclub, xxxclubto, sukebeisi, sukebei, pantsu, traht + todos os de sites privados
+> Nota: alguns plugins são de repos externos e podem precisar ser baixados manualmente se a URL acima falhar. Buscar por `$plugin.py qbittorrent search plugin` no GitHub.
 
-## Problema encontrado
-`tokyotoshokan.py` causava `AttributeError: no attribute 'name'` que impedia o qBittorrent de abrir. Foi removido.
+## Lista completa dos 52 plugins
+academictorrents, acgrip, ali213, anidex, animetosho, audiobookbay, bitsearch, bt4gprx, btdig, calidadtorrent, cloudtorrents, cpasbien, darklibria, divxtotal, dmhy, dodi_repacks, dontorrent, elitetorrent, esmeraldatorrent, fitgirl_repacks, glotorrents, kickasstorrents, linuxtracker, magnetdl, maxitorrent, mejortorrent, mikan, naranjatorrent, nyaa, nyaasi, onlinefix, pediatorrent, pirateiro, rockbox, rutor, sktorrent, smallgames, snowfl, solidtorrents, subsplease, thepiratebay, therarbg, tomadivx, torrent9, torrentdownload, torrentdownloads, torrentgalaxy, uniondht, yggtracker, yourbittorrent, yts, zooqle
+
+## Plugins excluídos intencionalmente
+mypornclub, xxxclubto, sukebeisi, sukebei, pantsu, traht + sites privados
+
+## Plugin problemático
+`tokyotoshokan.py` — causa `AttributeError: no attribute 'name'` e impede o qBittorrent de abrir. Nunca instalar.
+
+**Why:** Lista exata dos plugins ativos para recriar o estado sem precisar refazer as exclusões manualmente.
+**How to apply:** Ao receber pedido de reinstalação do qBittorrent, usar o script acima e nunca instalar tokyotoshokan.
