@@ -222,8 +222,8 @@ def black_mode_toggle():
         except Exception:
             _brightness_bak = 100
 
-        # Brilho 1%
-        _ddcutil_set(1)
+        # Brilho 0 (quase desligado)
+        _ddcutil_set(0)
         _black_mode_on = True
     else:
         # Restaurar brilho original
