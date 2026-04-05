@@ -1,0 +1,6 @@
+[Unit]
+Description=Sync linux-config to GitHub
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /home/linuxpc/linux-config/sync.sh
