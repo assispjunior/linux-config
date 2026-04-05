@@ -1,46 +1,51 @@
 ---
-name: Design Circuit Player
-description: App local tipo Hotmart para assistir o curso Design Circuit, com tracking de progresso e player externo Haruna
+name: Create Course
+description: Palavra-chave "Create Course [nome] [diretório]" — cria um course player completo (Flask + interface Hotmart) para qualquer curso local
 type: project
 ---
 
-Player local para o curso Design Circuit.
+## Palavra-chave
 
-**Why:** Curso baixado localmente em pastas, precisava de interface com tracking de progresso estilo Hotmart.
+**"Create Course [Nome do Curso] [/caminho/do/curso]"**
 
-**How to apply:** Ao falar sobre este projeto, considerar a arquitetura atual e os problemas já resolvidos.
+Exemplo: `Create Course Blender Avançado /Linux_Storage/Media/Videos/Cursos/Blender`
 
-## Localização dos arquivos
+## O que o comando faz
 
-- **Curso:** `/var/home/linuxpc/Linux_Storage/Media/Videos/Cursos/Design Circuit/`
-- **App:** `~/.local/share/course-player/` (app.py + templates/index.html)
-- **Progresso salvo:** `~/.local/share/course-player/progress.json`
-- **Atalho desktop:** `~/.local/share/applications/design-circuit.desktop`
-- **Ícone:** `~/.local/share/course-player/icon.svg`
-
-## Estrutura do curso
-
-- 13 seções (pastas numeradas), 180+ aulas
-- Estrutura: `Seção/Aula/video.mp4` + `descricao.html`/`links.html` + `00. Materiais/`
-
-## Stack
-
-- Python + Flask (`pip install flask --user`)
-- Interface web servida em `http://127.0.0.1:5000`
-- Inicia via `~/.local/share/course-player/start.sh` (ou pelo launcher do KDE)
-
-## Decisões de arquitetura
-
-- **Player externo:** Firefox Flatpak não decodifica H.264 via `<video>` nativa → vídeos abrem no **Haruna** (`flatpak run org.kde.haruna`) via endpoint `/api/play`
-- **Auto-mark:** quando Haruna fecha, aula é marcada como vista automaticamente (subprocess.run blocks até fechar)
-- **Ordenação:** natural sort numérico (`natural_key`) para evitar 10,11,12 antes de 2,3,4
-- **Range requests:** implementado manualmente no Flask para streaming correto (necessário mesmo que o player seja externo, caso mude no futuro)
-
-## Como iniciar
-
+Executa sem perguntar nada:
 ```bash
-~/.local/share/course-player/start.sh
-# ou pelo launcher do KDE buscando "Design Circuit"
+python3 ~/linux-config/course-player/create_course.py "Nome do Curso" "/caminho/do/curso"
 ```
 
-Se já estiver rodando, o script apenas abre o browser. Logs em `/tmp/design-circuit.log`.
+- Cria `~/.local/share/course-player-{slug}/` com app.py, templates/index.html, start.sh, progress.json
+- Detecta porta livre automaticamente (a partir de 5001)
+- Cria launcher `.desktop` no KDE
+- Inicia o app imediatamente
+
+## Cursos existentes
+
+| Curso | Diretório | Porta | App dir |
+|---|---|---|---|
+| Design Circuit | `/var/home/linuxpc/Linux_Storage/Media/Videos/Cursos/Design Circuit` | 5000 | `~/.local/share/course-player/` |
+
+## Stack
+- Python + Flask
+- Interface web estilo Hotmart (sidebar com seções/aulas, progresso, materiais)
+- Vídeos abrem no Haruna (`flatpak run org.kde.haruna`) — Firefox Flatpak não decodifica H.264
+- Auto-mark: aula marcada como vista quando Haruna fecha
+- Ordenação natural numérica das seções/aulas
+
+## Estrutura de curso esperada
+```
+Curso/
+  1. Seção/
+    1. Aula/
+      video.mp4
+      descricao.html   (opcional)
+      links.html       (opcional)
+      00. Materiais/   (opcional)
+```
+
+## Arquivos do gerador
+- `~/linux-config/course-player/create_course.py` — script principal
+- `~/linux-config/course-player/index_template.html` — template HTML com {{COURSE_NAME}}
