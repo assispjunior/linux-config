@@ -1,6 +1,6 @@
 # Memory Index
 
-- [Bing Rewards automation](project_bing_rewards.md) — Tampermonkey userscript + histórico de decisões do setup
+- [Bing Rewards](project_bing_rewards.md) — Tampermonkey userscript + histórico de decisões do setup
 - [qBittorrent plugins](project_qbittorrent_plugins.md) — 53 plugins instalados via script, plugin problemático removido
 - [optimization](optimization.md) — Rotina silenciosa: verificar e corrigir todas as otimizações do sistema (Bazzite, Steam, Eden, Heroic, Firefox, Plex)
 - [Overlay](project_overlay.md) — GTK4 + bandeja (tray.py); GPU/CPU/RAM/NVMe/FPS/1%low/MangoHud; start.sh + autostart; /home/linuxpc/system-overlay/

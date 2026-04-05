@@ -1,5 +1,5 @@
 ---
-name: Bing Rewards automation
+name: Bing Rewards
 description: Configuração completa da automação do Bing Rewards via Tampermonkey userscript
 type: project
 ---
