@@ -1,54 +1,40 @@
 ---
 name: Restore GitHub
-description: Como restaurar os arquivos de config e projetos do PC a partir do backup no GitHub após reinstalar o Claude
+description: Palavra-chave "restaurar do git" — restaura o sistema completo a partir do backup no GitHub, como ponto de recuperação do Windows
 type: project
 ---
 
-Repositório de backup: https://github.com/assispjunior/linux-config
+## Palavra-chave: "restaurar do git"
 
-## O que está salvo no repo
-
-- `memory/` — todas as memórias do Claude (copiar para `~/.claude/projects/-var-home-linuxpc/memory/`)
-- `overlay/` — código do Overlay (copiar para `~/system-overlay/`)
-- `mangohud/` — configs MangoHud por jogo (copiar para `~/.config/MangoHud/`)
-- `autostart/` — entrada de autostart do KDE (copiar para `~/.config/autostart/`)
-
-## Passos para restaurar
+Em um PC novo, logo após instalar o Bazzite e o Claude, rodar **um único comando** no terminal:
 
 ```bash
-# 1. Clonar o repo
-git clone git@github.com:assispjunior/linux-config.git ~/linux-config
-
-# 2. Restaurar memórias do Claude
-mkdir -p ~/.claude/projects/-var-home-linuxpc/memory/
-cp ~/linux-config/memory/*.md ~/.claude/projects/-var-home-linuxpc/memory/
-
-# 3. Restaurar Overlay
-mkdir -p ~/system-overlay/
-cp ~/linux-config/overlay/* ~/system-overlay/
-chmod +x ~/system-overlay/start.sh
-
-# 4. Restaurar MangoHud
-mkdir -p ~/.config/MangoHud/
-cp ~/linux-config/mangohud/*.conf ~/.config/MangoHud/
-
-# 5. Restaurar autostart
-mkdir -p ~/.config/autostart/
-cp ~/linux-config/autostart/*.desktop ~/.config/autostart/
+curl -sL https://raw.githubusercontent.com/assispjunior/linux-config/main/restore.sh | bash
 ```
 
-## Pré-requisitos para o clone funcionar
-- Chave SSH configurada: `~/.ssh/github_backup` adicionada em github.com → Settings → SSH keys
-- Se a chave foi perdida, gerar nova: `ssh-keygen -t ed25519 -C "bazzite-backup" -f ~/.ssh/github_backup -N ""`
-- Adicionar em `~/.ssh/config`:
-  ```
-  Host github.com
-    IdentityFile ~/.ssh/github_backup
-    User git
-  ```
+## O que é restaurado automaticamente
 
-## Palavra-chave
-Dizer **"restaurar do git"** para o Claude executar os passos acima automaticamente.
+1. **Chave SSH** — gera nova chave, pausa para o usuário adicionar no GitHub, testa e continua
+2. **Repo clonado** — `~/linux-config`
+3. **Git configurado** — user.name + user.email
+4. **Dependências do sistema** — python3-psutil, python3-gobject, gtk4-layer-shell, libayatana-appindicator-gtk3 (via rpm-ostree)
+5. **Flask** — pip install --user
+6. **Memórias do Claude** — copiadas para `~/.claude/projects/.../memory/`
+7. **Overlay** — scripts em `~/system-overlay/`, autostart configurado
+8. **MangoHud** — todos os `.conf` por jogo em `~/.config/MangoHud/`
+9. **qBittorrent plugins** — 52 plugins copiados direto do repo (sem precisar baixar)
+10. **Systemd timer** — sync diário automático com GitHub reativado
 
-**Why:** PC pode ser reinstalado ou trocado; o GitHub é a fonte de verdade para todos os configs e projetos.
-**How to apply:** Ao receber "restaurar do git", clonar o repo e copiar os arquivos nos destinos corretos.
+## O que fazer após a restauração
+
+- **Steam launch options** (com Steam fechado):
+  ```bash
+  python3 ~/system-overlay/set_launch_options.py
+  ```
+- **qBittorrent** precisa estar instalado antes dos plugins serem copiados (Flatpak)
+
+## Repositório
+`https://github.com/assispjunior/linux-config`
+
+**Why:** PC pode ser trocado/reinstalado; um comando restaura tudo sem perguntas.
+**How to apply:** Ao receber "restaurar do git", executar o curl acima e acompanhar os passos.
