@@ -1,57 +1,64 @@
 ---
-name: Overlay
-description: Widget de monitoramento do sistema (GPU/CPU/RAM/NVMe/FPS/MangoHud) no segundo monitor, com bandeja do sistema
+name: Reinstall Overlay
+description: Reinstalar o Overlay (widget GTK4 + bandeja) com um único comando a partir do backup no GitHub
 type: project
 ---
 
 Widget de monitoramento em tempo real para o segundo monitor (HDMI-A-1, portrait 1080x1920).
 
-## Arquivos
-- `/home/linuxpc/system-overlay/overlay.py` — janela GTK4 (widget principal)
-- `/home/linuxpc/system-overlay/tray.py` — ícone na bandeja (GTK3 + AyatanaAppIndicator3)
-- `/home/linuxpc/system-overlay/start.sh` — mata instâncias antigas e sobe o tray (que sobe o overlay)
-- `~/.config/autostart/sysmon-tray.desktop` — autostart aponta para `start.sh`
+## Reinstalação — um comando
 
-## Como iniciar
 ```bash
-bash /home/linuxpc/system-overlay/start.sh
+bash ~/linux-config/overlay/reinstall.sh
 ```
-Ou via autostart do KDE na próxima sessão.
+
+Se o repo não estiver clonado ainda:
+```bash
+git clone git@github.com:assispjunior/linux-config.git ~/linux-config && bash ~/linux-config/overlay/reinstall.sh
+```
+
+O script faz tudo: atualiza repo, instala dependências, copia arquivos, configura autostart e inicia.
+
+## Arquivos
+- `~/system-overlay/overlay.py` — janela GTK4 (widget principal)
+- `~/system-overlay/tray.py` — ícone na bandeja (GTK3 + AyatanaAppIndicator3)
+- `~/system-overlay/start.sh` — mata instâncias antigas e sobe o tray
+- `~/.config/autostart/sysmon-tray.desktop` — autostart do KDE
+
+## Dependências
+- `python3-psutil`, `python3-gobject`
+- `gtk4-layer-shell`, `gtk4-layer-shell-devel`
+- `libayatana-appindicator-gtk3`
+- LD_PRELOAD=/usr/lib64/libgtk4-layer-shell.so (já no start.sh)
 
 ## Visual
-- Fundo semi-transparente, sem decoração, fixo no monitor (gtk4-layer-shell, Layer.OVERLAY)
+- Fundo semi-transparente, sem decoração, fixo no monitor (Layer.OVERLAY, always-on-top)
 - Seções: GPU (LOAD/TEMP/VRAM), CPU (LOAD/TEMP), RAM (USO), NVMe (TEMP), FPS (ATUAL/1% LOW), FPS LIMIT (botão), MANGOHUD (ON/OFF)
-- Cores: amarelo=carga, vermelho=temp, ciano=FPS, verde=VRAM/RAM, cinza=inativo
+- Temperaturas dinâmicas: azul=baixo, laranja=médio, vermelho=alto (thresholds por componente)
 
-## Stack
-- Python + GTK4 + gtk4-layer-shell (Layer.OVERLAY, sem foco, always-on-top)
-- LD_PRELOAD=/usr/lib64/libgtk4-layer-shell.so obrigatório
-- GTK3 + AyatanaAppIndicator3 no processo separado do tray
-- Comunicação tray→overlay via SIGUSR1 (toggle visibilidade) + PID em /tmp/system-overlay.pid
+## Thresholds de temperatura
+- CPU: azul <60°, laranja 60-80°, vermelho ≥80°
+- GPU: azul <60°, laranja 60-75°, vermelho ≥75°
+- NVMe: azul <45°, laranja 45-60°, vermelho ≥60°
 
-## Fontes de dados hardware
+## Hardware mapeado
 - GPU load: `/sys/class/drm/card1/device/gpu_busy_percent`
-- GPU temp (edge): `/sys/class/hwmon/hwmon2/temp1_input`
+- GPU temp: `/sys/class/hwmon/hwmon2/temp1_input` (edge)
 - GPU VRAM: `/sys/class/drm/card1/device/mem_info_vram_{used,total}`
 - CPU load: psutil.cpu_percent()
-- CPU temp (Tctl): `/sys/class/hwmon/hwmon3/temp1_input`
+- CPU temp: `/sys/class/hwmon/hwmon3/temp1_input` (Tctl)
 - RAM: psutil.virtual_memory()
-- NVMe temp (Composite): `/sys/class/hwmon/hwmon1/temp1_input`
-- FPS / 1% low: lê CSV mais recente em `/tmp/mhud/` (log automático do MangoHud)
+- NVMe temp: `/sys/class/hwmon/hwmon1/temp1_input` (Composite)
+- FPS / 1% low: CSV mais recente em `/tmp/mhud/`
 - MangoHud ativo: grep `/proc/*/maps` por "MangoHud"
 
 ## MangoHud integration
-- `~/.config/MangoHud/MangoHud.conf` tem: `output_folder=/tmp/mhud`, `autostart_log=1`, `log_interval=500`
-- FPS e 1% low mostram `—` quando nenhum jogo está rodando
-- Botão FPS LIMIT cicla entre os valores do MangoHud.conf (60→82→162→SEM LIMITE) e envia Shift+F1 via ydotool
-- MangoHud ON/OFF detectado por presença da lib nos `/proc/*/maps`
+- `~/.config/MangoHud/MangoHud.conf`: `output_folder=/tmp/mhud`, `autostart_log=1`, `log_interval=500`, `no_display`
+- Botão FPS LIMIT cicla 60→82→162→SEM LIMITE e envia Shift+F1 via ydotool
+- **Palavra-chave:** "mangohud jogo" + nome + FPS limit → cria `.conf` e aplica launch option no Steam
 
-## Configuração MangoHud por jogo
-- Script: `/home/linuxpc/system-overlay/set_launch_options.py` — aplica launch options no localconfig.vdf (rodar com Steam fechado)
-- Configs por jogo em `~/.config/MangoHud/`: `overwatch.conf` (162), `hogwarts.conf` (82), `wuthering.conf` (82)
-- Jogos configurados: Overwatch (2357570), Hogwarts Legacy (990080), Wuthering Waves (3513350)
-- Launch option padrão: `MANGOHUD_CONFIGFILE=~/.config/MangoHud/{jogo}.conf gamemoderun mangohud %command%`
-- **Palavra-chave:** "mangohud jogo" + nome + FPS limit → cria `.conf` e aplica launch option
-
-## Status
-Funcionando. Todos os recursos implementados.
+## Jogos configurados
+- Overwatch (2357570) → overwatch.conf → 162 FPS
+- Hogwarts Legacy (990080) → hogwarts.conf → 82 FPS
+- Wuthering Waves (3513350) → wuthering.conf → 82 FPS
+- Script de launch options: `~/system-overlay/set_launch_options.py` (rodar com Steam fechado)
