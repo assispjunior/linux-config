@@ -12,3 +12,4 @@
 - [fifine setup](fifine_setup.md) — Palavra-chave: aguardar nome do app e gerar comando Key down para OpenDeck/Fifine D6
 - [Overlay](project_overlay.md) — GTK4 + bandeja (tray.py); GPU/CPU/RAM/NVMe/FPS/1%low/MangoHud; start.sh + autostart; /home/linuxpc/system-overlay/
 - [Design Circuit Player](project_design_circuit.md) — App Flask local tipo Hotmart; vídeos abrem no Haruna (Firefox Flatpak não suporta H.264 nativo)
+- [Restore GitHub](restore_github.md) — Palavra-chave "restaurar do git": clona github.com/assispjunior/linux-config e restaura overlay, MangoHud, memórias e autostart
