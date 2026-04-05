@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=SysMon Tray
+Exec=/bin/bash /home/linuxpc/system-overlay/start.sh
+Icon=utilities-system-monitor
+Comment=Bandeja para toggle do overlay de monitoramento
+X-GNOME-Autostart-enabled=true
+Hidden=false
